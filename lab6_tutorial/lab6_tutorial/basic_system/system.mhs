@@ -177,3 +177,13 @@ BEGIN my_peripheral
  PORT LED_Data = my_peripheral_0_LED_Data
 END
 
+BEGIN my_peripheral
+ PARAMETER INSTANCE = my_peripheral_1
+ PARAMETER HW_VER = 1.00.a
+END
+
+BEGIN my_peripheral
+ PARAMETER INSTANCE = my_peripheral_2
+ PARAMETER HW_VER = 1.00.a
+END
+

@@ -204,10 +204,11 @@ architecture IMP of user_logic is
 
  
   --USER signal declarations added here, as needed for user logic
-     
-    signal timer_count : std_logic_vector(C_SLV_DWIDTH-1 downto 0);
-    signal timer_count_tc : std_logic;
-    signal timer_count_en : std_logic;  
+     -- Timer signals and components
+        signal v_sync_counter_tc : std_logic_vector(31 downto 0);
+        signal en : std_logic;
+        signal tc : std_logic;        signal timer_cnt: std_logic_vector(31 downto 0);
+     
     component vga_top is 
     generic (
       H_RES                : natural := 640;
@@ -330,39 +331,33 @@ begin
   --USER logic implementation added here
   
   
-  process (Bus2IP_Clk, Bus2IP_Resetn)
- begin
- 
- 
+   process (Bus2IP_Clk, Bus2IP_Resetn)
+   begin
      if Bus2IP_Resetn = '0' then
-          timer_count <= (others => '0');
+        v_sync_counter_tc <= (others => '0');
      elsif rising_edge(Bus2IP_Clk) then
-         
-			if (timer_count_en = '1') then
-         if (timer_count_tc = '1') then
-        timer_count <= (others => '0');
-    else
-        timer_count <= timer_count + 1;
-        end if;
-        end if;
-        end if;
-        end process;
-		  
- timer_count_en <= slv_reg1(1);
- timer_count_tc <= '1' when (timer_count >= (slv_reg0 - 1)) else '0';
+      if (en = '1') then
+        if (tc = '1') then
+            v_sync_counter_tc <= (others => '0');
+        else
+          v_sync_counter_tc <= v_sync_counter_tc + 1;
+      end if;
+     end if;
+     end if;
+ end process;
+      en <= slv_reg1(1);
+      tc <= '1' when (v_sync_counter_tc >= (slv_reg0 - 1)) else '0';
 
- 
- 
  process( Bus2IP_Clk ) is
- begin
-    if Bus2IP_Clk'event and Bus2IP_Clk = '1' then
-    if Bus2IP_Resetn = '0' then
-     my_timer_irq <= '0';
-    else
-    my_timer_irq <= timer_count_tc;
-    end if;
-    end if;
-    end process;
+      begin
+       if Bus2IP_Clk'event and Bus2IP_Clk = '1' then
+          if Bus2IP_Resetn = '0' then
+           timer_cnt <= '0';
+        else
+        timer_cnt <= tc;
+ end if;
+ end if;
+ end process;
   
   unit_sel  <= Bus2IP_Addr(25 downto 24);
   unit_addr <= Bus2IP_Addr(GRAPH_MEM_ADDR_WIDTH+2-1 downto 2);
